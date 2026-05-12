@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>可乐航空学 · 意见反馈</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0f1e 0%, #0a1a1a 100%);
+            font-family: 'Segoe UI', system-ui, 'Noto Sans CJK SC', sans-serif;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .title-section {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .plane-icon {
+            font-size: 3rem;
+            filter: drop-shadow(0 0 8px #ff2a2a);
+            animation: fly 2s ease-in-out infinite;
+        }
+
+        @keyframes fly {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(5px, -8px) rotate(5deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .title-section h1 {
+            font-size: 1.8rem;
+            color: #ff6a6a;
+            text-shadow: 0 0 10px #ff2a2a;
+            letter-spacing: 2px;
+            margin-top: 0.5rem;
+        }
+
+        .feedback-box {
+            background: #11181c;
+            border-radius: 24px;
+            padding: 1.8rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border-top: 4px solid #ff2a2a;
+            box-shadow: 0 0 20px rgba(255,42,42,0.3);
+        }
+
+        .feedback-box h2 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #ff8a8a;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+            color: #ccc;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.8rem;
+            background: #1e2a2a;
+            border: 1px solid #334;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #ff2a2a;
+            box-shadow: 0 0 8px rgba(255,42,42,0.4);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.9rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 40px;
+            background: #ff2a2a;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 0.5rem;
+            text-shadow: 0 0 4px rgba(0,0,0,0.3);
+        }
+
+        .submit-btn:hover {
+            background: #ff5555;
+            transform: scale(0.98);
+        }
+
+        .msg {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.85rem;
+            padding: 0.5rem;
+            border-radius: 30px;
+            background: #1e2a2a;
+            display: none;
+        }
+
+        .msg.success {
+            background: #1e4a2a;
+            color: #8fef8f;
+            display: block;
+        }
+
+        .msg.error {
+            background: #4a2a2a;
+            color: #ff8f8f;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="title-section">
+        <div class="plane-icon">✈️</div>
+        <h1>可乐航空学</h1>
+    </div>
+
+    <div class="feedback-box">
+        <h2>📝 意见反馈</h2>
+        <form id="feedbackForm">
+            <div class="form-group">
+                <label>💬 反馈内容</label>
+                <textarea name="content" rows="4" placeholder="请写下你的建议、BUG或想法..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>📞 联系方式（QQ号 / 邮箱）</label>
+                <input type="text" name="contact" placeholder="QQ号或邮箱，方便我们回复你" required>
+            </div>
+            <button type="submit" class="submit-btn">✈️ 提交反馈</button>
+        </form>
+        <div id="msg" class="msg"></div>
+    </div>
+</div>
+
+<script>
+    // ⚠️ 这里改成你真实的 Workers 地址
+    const API_URL = 'https://你的后端地址/api/feedback';
+
+    const form = document.getElementById('feedbackForm');
+    const msgDiv = document.getElementById('msg');
+
+    async function submitFeedback(content, contact) {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                server: 'kele',
+                content: content,
+                contact: contact,
+                time: new Date().toISOString()
+            })
+        });
+        return response;
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const content = formData.get('content');
+        const contact = formData.get('contact');
+
+        if (!content || !contact) {
+            msgDiv.textContent = '请完整填写反馈内容和联系方式';
+            msgDiv.className = 'msg error';
+            setTimeout(() => { msgDiv.style.display = 'none'; }, 3000);
+            return;
+        }
+
+        msgDiv.textContent = '提交中...';
+        msgDiv.className = 'msg';
+        msgDiv.style.display = 'block';
+
+        try {
+            const res = await submitFeedback(content, contact);
+            if (res.ok) {
+                msgDiv.textContent = '✅ 反馈已收到，感谢你的支持！';
+                msgDiv.className = 'msg success';
+                form.reset();
+            } else {
+                const err = await res.json();
+                msgDiv.textContent = '❌ 提交失败：' + (err.error || '服务器异常，请稍后再试');
+                msgDiv.className = 'msg error';
+            }
+        } catch (err) {
+            // 🔥 这里改了：网络错误 → 无法连接到后端服务器
+            msgDiv.textContent = '❌ 无法连接到后端服务器，请稍后再试';
+            msgDiv.className = 'msg error';
+        }
+
+        setTimeout(() => {
+            msgDiv.style.display = 'none';
+        }, 4000);
+    });
+</script>
+</body>
+</html>
