@@ -161,63 +161,64 @@
 </div>
 
 <script>
-    // ⚠️ 这里改成你真实的 Workers 地址
+    // ==================== 配置区域 ====================
+    // 后端地址已经直接写好了，不用改
     const API_URL = 'https://hkxfk.3903326510.workers.dev/api/feedback';
+    // =================================================
 
     const form = document.getElementById('feedbackForm');
     const msgDiv = document.getElementById('msg');
 
-    async function submitFeedback(content, contact) {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                server: 'kele',
-                content: content,
-                contact: contact,
-                time: new Date().toISOString()
-            })
-        });
-        return response;
+    function showMessage(text, isError = false) {
+        msgDiv.textContent = text;
+        msgDiv.className = isError ? 'msg error' : 'msg success';
+        msgDiv.style.display = 'block';
+        
+        setTimeout(() => {
+            msgDiv.style.display = 'none';
+        }, 4000);
     }
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
         const formData = new FormData(form);
-        const content = formData.get('content');
-        const contact = formData.get('contact');
+        const content = formData.get('content').trim();
+        const contact = formData.get('contact').trim();
 
         if (!content || !contact) {
-            msgDiv.textContent = '请完整填写反馈内容和联系方式';
-            msgDiv.className = 'msg error';
-            setTimeout(() => { msgDiv.style.display = 'none'; }, 3000);
+            showMessage('请完整填写反馈内容和联系方式', true);
             return;
         }
 
-        msgDiv.textContent = '提交中...';
-        msgDiv.className = 'msg';
-        msgDiv.style.display = 'block';
+        showMessage('提交中...', false);
+        
+        const submitBtn = form.querySelector('.submit-btn');
+        submitBtn.disabled = true;
 
         try {
-            const res = await submitFeedback(content, contact);
-            if (res.ok) {
-                msgDiv.textContent = '✅ 反馈已收到，感谢你的支持！';
-                msgDiv.className = 'msg success';
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: content,
+                    contact: contact,
+                    time: new Date().toISOString()
+                })
+            });
+
+            if (response.ok) {
+                showMessage('✅ 反馈已收到，感谢你的支持！', false);
                 form.reset();
             } else {
-                const err = await res.json();
-                msgDiv.textContent = '❌ 提交失败：' + (err.error || '服务器异常，请稍后再试');
-                msgDiv.className = 'msg error';
+                showMessage('❌ 提交失败，请稍后再试', true);
             }
         } catch (err) {
-            // 🔥 这里改了：网络错误 → 无法连接到后端服务器
-            msgDiv.textContent = '❌ 无法连接到后端服务器，请稍后再试';
-            msgDiv.className = 'msg error';
+            console.error('提交出错:', err);
+            showMessage('❌ 无法连接到服务器，请检查网络后重试', true);
+        } finally {
+            submitBtn.disabled = false;
         }
-
-        setTimeout(() => {
-            msgDiv.style.display = 'none';
-        }, 4000);
     });
 </script>
 </body>
